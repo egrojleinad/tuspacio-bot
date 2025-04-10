@@ -183,8 +183,11 @@ app.post('/webhook', (req, res) => {
         case '2': client.step = 'unas_menu'; twiml.message(submenuUnas()); break;
         case '3': sendWithDelay(twiml, '📋 Descarga aquí la lista de nuestros servicios y los precios: https://example.com/servicios', showMainMenu()); break;
         case '4':
+  const now = new Date();
+  const fechaHoy = now.toLocaleDateString('es-CR');
+  const horaAhora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
   twiml.message('💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263');
-  notifySalon({ nombre: client.name, telefono: from, servicio: 'Asesoría directa' });
+  notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Asesoría directa' });
   twiml.message(showMainMenu());
   break;
           break;
