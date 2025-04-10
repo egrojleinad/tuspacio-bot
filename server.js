@@ -15,7 +15,7 @@ console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID);
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const whatsappFrom = process.env.TWILIO_WHATSAPP_NUMBER;
-const notifyTo = 'whatsapp:+50672297263';
+const notifyTo = 'whatsapp:+51986040443';
 
 const twilioClient = twilio(accountSid, authToken);
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -74,8 +74,11 @@ const notifySalon = async ({ nombre, telefono, fecha, hora, servicio, detalle = 
 📱 *Teléfono:* ${telefono}
 📅 *Fecha:* ${fecha}
 🕐 *Hora:* ${hora}
-💼 *Servicio:* ${servicio}${detalle ? `\n📝 *Detalle:* ${detalle}` : ''}`;
+💼 *Servicio:* ${servicio}${detalle ? `
+📝 *Detalle:* ${detalle}` : ''}`;
+  console.log('Enviando a WhatsApp:', mensaje);
   await twilioClient.messages.create({ body: mensaje, from: whatsappFrom, to: notifyTo });
+  console.log('✅ Mensaje enviado al salón con éxito');
 };
 
 const sendWithDelay = (twiml, firstMsg, secondMsg) => {
