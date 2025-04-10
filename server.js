@@ -185,27 +185,23 @@ app.post('/webhook', (req, res) => {
         case '4':
   twiml.message('💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263');
   notifySalon({ nombre: client.name, telefono: from, servicio: 'Asesoría directa' });
-  setTimeout(() => {
-    twiml.message(showMainMenu());
-  }, 4000);
+  twiml.message(showMainMenu());
   break;
           break;
         case '5': sendWithDelay(twiml, '🕒 Horarios: https://example.com/horarios', showMainMenu()); break;
         case '6': sendWithDelay(twiml, '📍 Dirección: Cartago, El Guarco. Waze: https://waze.com/aaaaa', showMainMenu()); break;
         case '7':
   notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de cuenta para transferencia' });
-  setTimeout(() => {
-    sendWithDelay(twiml, `💳 Número de cuenta BAC: CRlflfkkfkfk
-Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
-  }, 4000);
-  break; break;
+  twiml.message(`💳 Número de cuenta BAC: CRlflfkkfkfk
+Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`);
+  twiml.message(showMainMenu());
+  break;
         case '8':
   notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de número SINPE' });
-  setTimeout(() => {
-    sendWithDelay(twiml, `📱 SINPE móvil: 7229 7263
-Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
-  }, 4000);
-  break; break;
+  twiml.message(`📱 SINPE móvil: 7229 7263
+Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`);
+  twiml.message(showMainMenu());
+  break;
         case '9':
         case '0':
           endSession(client, twiml, from);
