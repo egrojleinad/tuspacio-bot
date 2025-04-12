@@ -80,11 +80,13 @@ const notifySalon = async ({ nombre, telefono, fecha, hora, servicio, detalle = 
 };
 
 const sendWithDelay = (twiml, firstMsg, secondMsg) => {
-  twiml.message(firstMsg);
-  twiml.message(secondMsg);
+  const formattedFirstMsg = formatResponse(firstMsg);
+  const formattedSecondMsg = formatResponse(secondMsg);
+  twiml.message(formattedFirstMsg);
+  twiml.message(formattedSecondMsg);
 };
 
-const formatResponse = (msg) => msg;
+const formatResponse = (msg) => msg; // Restored for future formatting extensions
 
 const setInactivityTimeout = (client, from) => {
   if (timeouts[from]) clearTimeout(timeouts[from]);
@@ -151,26 +153,25 @@ app.post('/webhook', async (req, res) => {
   const now = new Date();
   const fechaHoy = now.toLocaleDateString('es-CR');
   const horaAhora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
-  twiml.message('💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263');
   await notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Asesoría directa' });
-  twiml.message(showMainMenu());
+  sendWithDelay(twiml, `💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263`, showMainMenu());
   break;
 }
           break;
         case '5': sendWithDelay(twiml, '🕒 Horarios: https://example.com/horarios', showMainMenu()); break;
         case '6': sendWithDelay(twiml, '📍 Dirección: Cartago, El Guarco. Waze: https://waze.com/aaaaa', showMainMenu()); break;
-        case '7':
-  notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de cuenta para transferencia' });
-  twiml.message(`💳 Número de cuenta BAC: CRlflfkkfkfk
-Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`);
-  twiml.message(showMainMenu());
+        case '7': {
+  await notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de cuenta para transferencia' });
+  sendWithDelay(twiml, `💳 Número de cuenta BAC: CRlflfkkfkfk
+Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
   break;
-        case '8':
-  notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de número SINPE' });
-  twiml.message(`📱 SINPE móvil: 7229 7263
-Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`);
-  twiml.message(showMainMenu());
+}
+        case '8': {
+  await notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de número SINPE' });
+  sendWithDelay(twiml, `📱 SINPE móvil: 7229 7263
+Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
   break;
+}
         case '9':
         case '0':
           endSession(client, twiml, from);
