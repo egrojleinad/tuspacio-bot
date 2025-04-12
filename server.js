@@ -24,8 +24,7 @@ const clients = {};
 const timeouts = {};
 
 const showMainMenu = () => (
-`💅 *Bienvenida a TuSpacio Nails* 💇‍♀️💇‍♂️
-──────────────────────────────
+`💅 *Bienvenid@ a TuSpacio Nails* 💇‍♀️💇‍♂️
 Por favor, elige una de las siguientes opciones:
 
 🔹 1. Agendar una cita para *Pelo*
@@ -43,7 +42,6 @@ Por favor, elige una de las siguientes opciones:
 
 const submenuPelo = () => (
 `💇‍♀️ *Agendar una cita para Pelo*
-──────────────────────────────
 1️⃣ Corte de cabello ✂️
 2️⃣ Tinte, decoloración o similares 🎨
 3️⃣ Tratamiento especial 💆‍♀️
@@ -82,47 +80,11 @@ const notifySalon = async ({ nombre, telefono, fecha, hora, servicio, detalle = 
 };
 
 const sendWithDelay = (twiml, firstMsg, secondMsg) => {
-  const formattedFirstMsg = formatResponse(firstMsg);
-  const formattedSecondMsg = formatResponse(secondMsg);
-  twiml.message(formattedFirstMsg);
-  twiml.message(formattedSecondMsg);
+  twiml.message(firstMsg);
+  twiml.message(secondMsg);
 };
 
-const formatResponse = (msg) => {
-  return msg
-    .replace('✅', `✅ *Confirmación:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/confirmacion.jpg
-`)
-    .replace('📋', `📋 *Listado de servicios:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/servicios.jpg
-`)
-    .replace('💬', `💬 *Asesora de belleza:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/asesora.jpg
-`)
-    .replace('🕒', `🕒 *Horarios del salón:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/horarios.jpg
-`)
-    .replace('📍', `📍 *Dirección del salón:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/mapa.jpg
-`)
-    .replace('💳', `💳 *Pago por transferencia:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/transferencia.jpg
-`)
-    .replace('📱', `📱 *Pago por SINPE:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/sinpe.jpg
-`)
-    .replace('🙏', `🙏 *Gracias por tu visita:*
-━━━━━━━━━━━━━━━━━━━━━━━
-🖼️ https://example.com/gracias.jpg
-`);
-};
+const formatResponse = (msg) => msg;
 
 const setInactivityTimeout = (client, from) => {
   if (timeouts[from]) clearTimeout(timeouts[from]);
@@ -145,7 +107,7 @@ const endSession = (client, twiml, from) => {
 };
 
 // Restaurar webhook funcional
-app.post('/webhook', (req, res) => {
+app.post('/webhook', async (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
   const from = req.body.From;
   const msg = req.body.Body.trim();
@@ -185,14 +147,15 @@ app.post('/webhook', (req, res) => {
         case '1': client.step = 'pelo_menu'; twiml.message(submenuPelo()); break;
         case '2': client.step = 'unas_menu'; twiml.message(submenuUnas()); break;
         case '3': sendWithDelay(twiml, '📋 Descarga aquí la lista de nuestros servicios y los precios: https://example.com/servicios', showMainMenu()); break;
-        case '4':
+        case '4': {
   const now = new Date();
   const fechaHoy = now.toLocaleDateString('es-CR');
   const horaAhora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
   twiml.message('💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263');
-  notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Asesoría directa' });
+  await notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Asesoría directa' });
   twiml.message(showMainMenu());
   break;
+}
           break;
         case '5': sendWithDelay(twiml, '🕒 Horarios: https://example.com/horarios', showMainMenu()); break;
         case '6': sendWithDelay(twiml, '📍 Dirección: Cartago, El Guarco. Waze: https://waze.com/aaaaa', showMainMenu()); break;
