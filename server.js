@@ -103,7 +103,9 @@ Parece que ha pasado un tiempo sin respuesta. Hemos reiniciado la sesión. Aquí
 };
 
 const endSession = (client, twiml, from) => {
-  const farewell = '🙏 Agradecemos elegir TuSpacio Nails. Te esperamos pronto. Si tienes algo que comentarnos para seguir mejorando, por favor, escribe aquí:';
+  const farewell = `🙏 Agradecemos elegir TuSpacio Nails. Te esperamos pronto. Si tienes algo que comentarnos para seguir mejorando, por favor, escribe aquí:
+✏️ *Escribe tu comentario o sugerencia ahora.*
+🛑 *Escribe 0 si no deseas enviar ningún comentario.*`;
   client.step = 'end_feedback';
   twiml.message(farewell);
 };
@@ -128,8 +130,7 @@ app.post('/webhook', async (req, res) => {
   if (client.step === 'ask_name') {
     client.name = msg;
     client.step = 'menu';
-    twiml.message(`¡Gracias, ${client.name}!`);
-    twiml.message(showMainMenu());
+    sendWithDelay(twiml, `¡Gracias, ${client.name}!`, showMainMenu());
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
     return;
@@ -257,9 +258,16 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
       break;
 
     case 'end_feedback':
-      notifySalon({ nombre: client.name, telefono: from, servicio: 'Comentario Final', detalle: msg });
+      if (msg !== '0') {
+        const now = new Date();
+        const fechaHoy = now.toLocaleDateString('es-CR');
+        const horaAhora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+        await notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Comentario Final', detalle: msg });
+        twiml.message('🙏 ¡Gracias por tu comentario! Te esperamos pronto en TuSpacio Nails.');
+      } else {
+        twiml.message('🚫 Comentario cancelado. ¡Te esperamos pronto en TuSpacio Nails!');
+      }
       delete clients[from];
-      twiml.message('🙏 ¡Gracias por tu comentario! Te esperamos pronto en TuSpacio Nails.');
       break;
 
     default:
