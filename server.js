@@ -27,7 +27,7 @@ const showMainMenu = () => (
 `💅 *Bienvenid@ a TuSpacio Nails* 💇‍♀️💇‍♂️
 Por favor, elige una de las siguientes opciones:
 
-1. Agendar una cita para *Pelo*
+1. Agendar una cita para *Cabello*
 2. Agendar una cita para *Uñas*
 3. 📋 Ver listado de *servicios y precios*
 4. 💬 Hablar con una *asesora*
@@ -41,7 +41,7 @@ Por favor, elige una de las siguientes opciones:
 );
 
 const submenuPelo = () => (
-`💇‍♀️ *Agendar una cita para Pelo*
+`💇‍♀️ *Agendar una cita para cabello*
 1️⃣ Corte de cabello ✂️
 2️⃣ Tinte, decoloración o similares 🎨
 3️⃣ Tratamiento especial 💆‍♀️
