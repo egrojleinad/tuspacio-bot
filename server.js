@@ -27,15 +27,15 @@ const showMainMenu = () => (
 `💅 *Bienvenid@ a TuSpacio Nails* 💇‍♀️💇‍♂️
 Por favor, elige una de las siguientes opciones:
 
-🔹 1. Agendar una cita para *Pelo*
-🔹 2. Agendar una cita para *Uñas*
-🔹 3. 📋 Ver listado de *servicios y precios*
-🔹 4. 💬 Hablar con una *asesora*
-🔹 5. 🕒 Consultar *horarios* del salón
-🔹 6. 📍 Ver *dirección* del salón
-🔹 7. 💳 Número de cuenta *para transferencias*
-🔹 8. 📱 Número de celular *para SINPE*
-🔹 0. ❌ Terminar la sesión
+1. Agendar una cita para *Pelo*
+2. Agendar una cita para *Uñas*
+3. 📋 Ver listado de *servicios y precios*
+4. 💬 Hablar con una *asesora*
+5. 🕒 Consultar *horarios* del salón
+6. 📍 Ver *dirección* del salón
+7. 💳 Número de cuenta *para transferencias*
+8. 📱 Número de celular *para SINPE*
+0. ❌ Terminar la sesión
 
 📝 En cualquier momento, escribe 0 para volver al Menú Principal.`
 );
@@ -51,7 +51,6 @@ const submenuPelo = () => (
 
 const submenuUnas = () => (
 `💅 *Agendar una cita para Uñas*
-──────────────────────────────
 1️⃣ Manos 💅
 2️⃣ Pies 🦶
 3️⃣ Manos y Pies 💅🦶
@@ -67,7 +66,6 @@ const returnToMainMenu = (client, twiml) => {
 
 const notifySalon = async ({ nombre, telefono, fecha, hora, servicio, detalle = '' }) => {
   const mensaje = `📌 *Nueva solicitud de cita:*
-━━━━━━━━━━━━━━━━━━━━━━━
 👤 *Nombre:* ${nombre}
 📱 *Teléfono:* ${telefono}
 📅 *Fecha:* ${fecha}
@@ -162,13 +160,11 @@ app.post('/webhook', async (req, res) => {
         case '5': sendWithDelay(twiml, '🕒 Horarios: https://example.com/horarios', showMainMenu()); break;
         case '6': sendWithDelay(twiml, '📍 Dirección: Cartago, El Guarco. Waze: https://waze.com/aaaaa', showMainMenu()); break;
         case '7': {
-  await notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de cuenta para transferencia' });
   sendWithDelay(twiml, `💳 Número de cuenta BAC: CRlflfkkfkfk
 Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
   break;
 }
         case '8': {
-  await notifySalon({ nombre: client.name, telefono: from, servicio: 'Solicitud de número SINPE' });
   sendWithDelay(twiml, `📱 SINPE móvil: 7229 7263
 Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
   break;
