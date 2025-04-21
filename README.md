@@ -1,6 +1,6 @@
-# 💅 TuSpacio Nails - WhatsApp Bot
+# 💅 TuSpacio Salon - WhatsApp Bot
 
-Este es un chatbot diseñado para el salón de belleza **TuSpacio Nails** que permite a los clientes agendar citas, conocer servicios, comunicarse con asesoras y más, todo a través de WhatsApp Business con Twilio.
+Este es un chatbot diseñado para el salón de belleza **TuSpacio Salon** que permite a los clientes agendar citas, conocer servicios, comunicarse con asesoras y más, todo a través de WhatsApp Business con Twilio.
 
 ---
 
