@@ -1,4 +1,4 @@
-// TuSpacio Salón WhatsApp Bot
+// TuSpacio Salon WhatsApp Bot
 // Autor base: Jorge Colmenares
 // Adaptación completa para salón de belleza por ZAPIKEY AI
 
@@ -24,7 +24,7 @@ const clients = {};
 const timeouts = {};
 
 const showMainMenu = () => (
-`💅 *Bienvenid@ a TuSpacio Nails* 💇‍♀️💇‍♂️
+`💅 *Bienvenid@ a TuSpacio Salon* 💇‍♀️💇‍♂️
 Por favor, elige una de las siguientes opciones:
 
 1. Agendar una cita para *Cabello*
@@ -101,7 +101,7 @@ Parece que ha pasado un tiempo sin respuesta. Hemos reiniciado la sesión. Aquí
 };
 
 const endSession = (client, twiml, from) => {
-  const farewell = `🙏 Agradecemos elegir TuSpacio Nails. Te esperamos pronto. Si tienes algo que comentarnos para seguir mejorando, por favor, escribe aquí:
+  const farewell = `🙏 Agradecemos elegir TuSpacio Salon. Te esperamos pronto. Si tienes algo que comentarnos para seguir mejorando, por favor, escribe aquí:
 ✏️ *Escribe tu comentario o sugerencia ahora.*
 🛑 *Escribe 0 si no deseas enviar ningún comentario.*`;
   client.step = 'end_feedback';
@@ -116,7 +116,7 @@ app.post('/webhook', async (req, res) => {
 
   if (!clients[from]) {
     clients[from] = { step: 'ask_name', name: '', temp: {}, phone: from };
-    twiml.message('👋 ¡Hola! Bienvenida a *TuSpacio Nails*. ¿Podrías decirme tu nombre para empezar?');
+    twiml.message('👋 ¡Hola! Bienvenid@ a *TuSpacio Salon*. ¿Podrías decirme tu nombre para empezar?');
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
     return;
@@ -183,7 +183,7 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
       if (['1', '2', '3'].includes(msg)) {
         client.temp.servicio = ['Corte de cabello ✂️', 'Tinte o decoloración 🎨', 'Tratamiento especial 💆‍♀️'][parseInt(msg) - 1];
         client.step = 'pelo_fecha';
-        twiml.message('📅 ¿Qué fecha desea el servicio?');
+        twiml.message('📅 ¿En qué fecha desea el servicio?');
       } else if (msg === '0') {
         returnToMainMenu(client, twiml);
       } else {
@@ -220,7 +220,7 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
       if (['1', '2', '3'].includes(msg)) {
         client.temp.servicio = ['Uñas - Manos 💅', 'Uñas - Pies 🦶', 'Uñas - Manos y Pies 💅🦶'][parseInt(msg) - 1];
         client.step = 'unas_fecha';
-        twiml.message('📅 ¿Qué fecha desea el servicio?');
+        twiml.message('📅 ¿En qué fecha desea el servicio?');
       } else if (msg === '0') {
         returnToMainMenu(client, twiml);
       } else {
@@ -259,9 +259,9 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
         const fechaHoy = now.toLocaleDateString('es-CR');
         const horaAhora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
         await notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Comentario Final', detalle: msg });
-        twiml.message('🙏 ¡Gracias por tu comentario! Te esperamos pronto en TuSpacio Nails.');
+        twiml.message('🙏 ¡Gracias por tu comentario! Te esperamos pronto en TuSpacio Salon.');
       } else {
-        twiml.message('🚫 Comentario cancelado. ¡Te esperamos pronto en TuSpacio Nails!');
+        twiml.message('🚫 Comentario cancelado. ¡Te esperamos pronto en TuSpacio Salon!');
       }
       delete clients[from];
       break;
@@ -276,5 +276,5 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
 });
 
 app.listen(port, () => {
-  console.log(`🚀 TuSpacio Nails Bot ejecutándose en http://localhost:${port}`);
+  console.log(`🚀 TuSpacio Salon Bot ejecutándose en http://localhost:${port}`);
 });
