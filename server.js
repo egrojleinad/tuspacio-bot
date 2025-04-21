@@ -24,11 +24,10 @@ const clients = {};
 const timeouts = {};
 
 const showMainMenu = () => (
-`💅 *Bienvenid@ a TuSpacio Salon* 💇‍♀️💇‍♂️
+`*Bienvenid@ a TuSpacio Salon* 
 Por favor, elige una de las siguientes opciones:
-
-1. Agendar una cita para *Cabello*
-2. Agendar una cita para *Uñas*
+1. 💇‍♀️ Agendar una cita para *Cabello*
+2. 💅 Agendar una cita para *Uñas*
 3. 📋 Ver listado de *servicios y precios*
 4. 💬 Hablar con una *asesora*
 5. 🕒 Consultar *horarios* del salón
@@ -40,7 +39,7 @@ Por favor, elige una de las siguientes opciones:
 📝 En cualquier momento, escribe 0 para volver al Menú Principal.`
 );
 
-const submenuPelo = () => (
+const submenuCabello = () => (
 `💇‍♀️ *Agendar una cita para cabello*
 1️⃣ Corte de cabello ✂️
 2️⃣ Tinte, decoloración o similares 🎨
@@ -60,6 +59,7 @@ const submenuUnas = () => (
 
 const returnToMainMenu = (client, twiml) => {
   client.step = 'menu';
+  client.awaitingMenu = false;
   twiml.message(showMainMenu());
   setInactivityTimeout(client, client.phone);
 };
@@ -77,27 +77,16 @@ const notifySalon = async ({ nombre, telefono, fecha, hora, servicio, detalle = 
   console.log('✅ Mensaje enviado al salón con éxito');
 };
 
-const sendWithDelay = (twiml, firstMsg, secondMsg) => {
-  const formattedFirstMsg = formatResponse(firstMsg);
-  const formattedSecondMsg = formatResponse(secondMsg);
-  twiml.message(formattedFirstMsg);
-  twiml.message(formattedSecondMsg);
-};
-
-const formatResponse = (msg) => msg; // Restored for future formatting extensions
-
 const setInactivityTimeout = (client, from) => {
   if (timeouts[from]) clearTimeout(timeouts[from]);
   timeouts[from] = setTimeout(() => {
-    const message = `⌛ *¿Sigues ahí?*
-Parece que ha pasado un tiempo sin respuesta. Hemos reiniciado la sesión. Aquí tienes el menú principal nuevamente:`;
     delete clients[from];
     twilioClient.messages.create({
       from: whatsappFrom,
       to: from,
-      body: `${message}\n\n${showMainMenu()}`
+      body: `⌛ Hemos cerrado la sesión por inactividad. ¡Gracias por contactarnos! 🙏`
     });
-  }, 300000);
+  }, 120000); // 2 minutos
 };
 
 const endSession = (client, twiml, from) => {
@@ -108,7 +97,6 @@ const endSession = (client, twiml, from) => {
   twiml.message(farewell);
 };
 
-// Restaurar webhook funcional
 app.post('/webhook', async (req, res) => {
   const twiml = new twilio.twiml.MessagingResponse();
   const from = req.body.From;
@@ -125,10 +113,20 @@ app.post('/webhook', async (req, res) => {
   const client = clients[from];
   setInactivityTimeout(client, from);
 
+  if (client.step === 'awaiting_menu') {
+    client.step = 'menu';
+    client.awaitingMenu = false;
+    twiml.message(showMainMenu());
+    res.writeHead(200, { 'Content-Type': 'text/xml' });
+    res.end(twiml.toString());
+    return;
+  }
+
   if (client.step === 'ask_name') {
     client.name = msg;
     client.step = 'menu';
-    sendWithDelay(twiml, `¡Gracias, ${client.name}!`, showMainMenu());
+    client.awaitingMenu = true;
+    twiml.message(`¡Gracias, ${client.name}!`);
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
     return;
@@ -141,79 +139,66 @@ app.post('/webhook', async (req, res) => {
     return;
   }
 
-  // Lógica completa del flujo de conversación
   switch (client.step) {
     case 'menu':
       switch (msg) {
-        case '1': client.step = 'pelo_menu'; twiml.message(submenuPelo()); break;
+        case '1': client.step = 'cabello_menu'; twiml.message(submenuCabello()); break;
         case '2': client.step = 'unas_menu'; twiml.message(submenuUnas()); break;
-        case '3': sendWithDelay(twiml, '📋 Descarga aquí la lista de nuestros servicios y los precios: https://example.com/servicios', showMainMenu()); break;
+        case '3': twiml.message('📋 Lista de precios: https://example.com/servicios'); client.awaitingMenu = true; break;
         case '4': {
-  const now = new Date();
-  const fechaHoy = now.toLocaleDateString('es-CR');
-  const horaAhora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
-  await notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Asesoría directa' });
-  sendWithDelay(twiml, `💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263`, showMainMenu());
-  break;
-}
+          const now = new Date();
+          const fecha = now.toLocaleDateString('es-CR');
+          const hora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+          await notifySalon({ nombre: client.name, telefono: from, fecha, hora, servicio: 'Asesoría directa' });
+          twiml.message('💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263');
+          client.awaitingMenu = true;
+          client.step = 'awaiting_menu';
           break;
-        case '5': sendWithDelay(twiml, '🕒 Horarios: https://example.com/horarios', showMainMenu()); break;
-        case '6': sendWithDelay(twiml, '📍 Dirección: Cartago, El Guarco. Waze: https://waze.com/aaaaa', showMainMenu()); break;
-        case '7': {
-  sendWithDelay(twiml, `💳 Número de cuenta BAC: CRlflfkkfkfk
-Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
-  break;
-}
-        case '8': {
-  sendWithDelay(twiml, `📱 SINPE móvil: 7229 7263
-Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainMenu());
-  break;
-}
-        case '9':
-        case '0':
-          endSession(client, twiml, from);
-          break;
-        default:
-          twiml.message('❗ Opción no válida. Por favor elige una opción del menú.');
-          twiml.message(showMainMenu());
+        }
+
+        case '5': twiml.message('🕒 Horarios: https://example.com/horarios'); client.awaitingMenu = true; break;
+        case '6': twiml.message('📍 Dirección: Cartago, El Guarco. Waze: https://waze.com/aaaaa'); client.awaitingMenu = true; break;
+        case '7': twiml.message('💳 Cuenta BAC: CRlflfkkfkfk\nEnvía el comprobante a WhatsApp 7229 7263.'); client.awaitingMenu = true; break;
+        case '8': twiml.message('📱 SINPE móvil: 7229 7263\nEnvía el comprobante con tu nombre y servicio.'); client.awaitingMenu = true; break;
+        default: twiml.message('❗ Opción no válida.'); client.awaitingMenu = true;
       }
       break;
 
-    case 'pelo_menu':
+    case 'cabello_menu':
       if (['1', '2', '3'].includes(msg)) {
         client.temp.servicio = ['Corte de cabello ✂️', 'Tinte o decoloración 🎨', 'Tratamiento especial 💆‍♀️'][parseInt(msg) - 1];
-        client.step = 'pelo_fecha';
+        client.step = 'cabello_fecha';
         twiml.message('📅 ¿En qué fecha desea el servicio?');
-      } else if (msg === '0') {
-        returnToMainMenu(client, twiml);
       } else {
-        sendWithDelay(twiml, '❗ Opción inválida.', submenuPelo());
+        twiml.message('❗ Opción inválida.'); twiml.message(submenuCabello());
       }
       break;
 
-    case 'pelo_fecha':
+    case 'cabello_fecha':
       client.temp.fecha = msg;
-      client.step = 'pelo_hora';
+      client.step = 'cabello_hora';
       twiml.message('🕐 ¿En qué horario?');
       break;
 
-    case 'pelo_hora':
+    case 'cabello_hora':
       client.temp.hora = msg;
       if (client.temp.servicio.includes('Tratamiento especial')) {
-        client.step = 'pelo_detalle';
+        client.step = 'cabello_detalle';
         twiml.message('📝 Por favor, especifica qué tratamiento deseas.');
       } else {
-        notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-        sendWithDelay(twiml, '✅ Nos comunicaremos pronto con usted para confirmar la cita.', showMainMenu());
-        client.step = 'menu';
+        await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
+        twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
+        client.awaitingMenu = true;
+        client.step = 'awaiting_menu';
       }
       break;
 
-    case 'pelo_detalle':
+    case 'cabello_detalle':
       client.temp.detalle = msg;
-      notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-      sendWithDelay(twiml, '✅ Nos comunicaremos pronto con usted para confirmar la cita.', showMainMenu());
-      client.step = 'menu';
+      await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
+      twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
+      client.awaitingMenu = true;
+      client.step = 'awaiting_menu';
       break;
 
     case 'unas_menu':
@@ -221,10 +206,8 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
         client.temp.servicio = ['Uñas - Manos 💅', 'Uñas - Pies 🦶', 'Uñas - Manos y Pies 💅🦶'][parseInt(msg) - 1];
         client.step = 'unas_fecha';
         twiml.message('📅 ¿En qué fecha desea el servicio?');
-      } else if (msg === '0') {
-        returnToMainMenu(client, twiml);
       } else {
-        sendWithDelay(twiml, '❗ Opción inválida.', submenuUnas());
+        twiml.message('❗ Opción inválida.'); twiml.message(submenuUnas());
       }
       break;
 
@@ -240,17 +223,19 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
         client.step = 'unas_detalle';
         twiml.message('📝 Por favor, especifica qué tratamiento deseas.');
       } else {
-        notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-        sendWithDelay(twiml, '✅ Nos comunicaremos pronto con usted para confirmar la cita.', showMainMenu());
-        client.step = 'menu';
+        await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
+        twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
+        client.awaitingMenu = true;
+        client.step = 'awaiting_menu';
       }
       break;
 
     case 'unas_detalle':
       client.temp.detalle = msg;
-      notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-      sendWithDelay(twiml, '✅ Nos comunicaremos pronto con usted para confirmar la cita.', showMainMenu());
-      client.step = 'menu';
+      await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
+      twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
+      client.awaitingMenu = true;
+      client.step = 'awaiting_menu';
       break;
 
     case 'end_feedback':
@@ -265,12 +250,8 @@ Envía el comprobante a WhatsApp 7229 7263 con tu nombre y servicio.`, showMainM
       }
       delete clients[from];
       break;
-
-    default:
-      client.step = 'menu';
-      twiml.message(showMainMenu());
-      break;
   }
+
   res.writeHead(200, { 'Content-Type': 'text/xml' });
   res.end(twiml.toString());
 });
