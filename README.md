@@ -1,24 +1,23 @@
 # 💅 TuSpacio Salon - WhatsApp Bot
 
-Este es un chatbot diseñado para el salón de belleza **TuSpacio Salon** que permite a los clientes agendar citas, conocer servicios, comunicarse con asesoras y más, todo a través de WhatsApp Business con Twilio.
+## TuSpacio Salon WhatsApp Bot 🚀
+
+Este es un bot de WhatsApp para el salón de belleza **Tu Spacio Salon**, diseñado para agendar citas de cabello y uñas, proveer información útil y generar interacciones automatizadas con clientes.
 
 ---
 
-## 🚀 ¿Qué hace este bot?
+### 📦 Requisitos
 
-- Recibe y guarda el nombre del cliente.
-- Muestra menú de servicios.
-- Agenda citas para pelo y uñas.
-- Informa sobre precios, ubicación, horarios y formas de pago.
-- Envía notificaciones automáticas a WhatsApp del salón.
-- Permite enviar comentarios y terminar sesión.
+- Node.js v18+ o superior
+- Cuenta de Twilio con acceso a WhatsApp API
+- Un número de teléfono registrado en WhatsApp Business
 
 ---
 
-## ⚙️ Instalación
+### ⚙️ Instalación
 
-1. Clona este repositorio o copia los archivos al entorno de tu preferencia:
-
+1. Clona este repositorio:
 ```bash
-git clone https://github.com/tu_usuario/tuspacio-nails-bot.git
-cd tuspacio-nails-bot
+git clone https://github.com/tu-usuario/tuspacio-salon-bot.git
+cd tuspacio-salon-bot
+
