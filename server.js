@@ -119,6 +119,7 @@ app.post('/webhook', async (req, res) => {
     res.end(twiml.toString());
     return;
   }
+  
 
   if (client.awaitingMenu) {
     client.awaitingMenu = false;
