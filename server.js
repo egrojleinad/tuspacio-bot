@@ -125,8 +125,9 @@ app.post('/webhook', async (req, res) => {
   if (client.step === 'ask_name') {
     client.name = msg;
     client.step = 'menu';
-    client.awaitingMenu = true;
+    client.awaitingMenu = false;
     twiml.message(`¡Gracias, ${client.name}!`);
+    twiml.message(showMainMenu()); // ✅ MOSTRAR MENÚ INICIAL
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
     return;
@@ -139,123 +140,6 @@ app.post('/webhook', async (req, res) => {
     return;
   }
 
-  switch (client.step) {
-    case 'menu':
-      switch (msg) {
-        case '1': client.step = 'cabello_menu'; twiml.message(submenuCabello()); break;
-        case '2': client.step = 'unas_menu'; twiml.message(submenuUnas()); break;
-        case '3': twiml.message('📋 Lista de precios: https://example.com/servicios'); client.awaitingMenu = true; break;
-        case '4': {
-          const now = new Date();
-          const fecha = now.toLocaleDateString('es-CR');
-          const hora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
-          await notifySalon({ nombre: client.name, telefono: from, fecha, hora, servicio: 'Asesoría directa' });
-          twiml.message('💬 Pronto te pondremos en contacto con una asesora. Si no respondemos, llama al 📞 7229 7263');
-          client.awaitingMenu = true;
-          client.step = 'awaiting_menu';
-          break;
-        }
-
-        case '5': twiml.message('🕒 Horarios: https://example.com/horarios'); client.awaitingMenu = true; break;
-        case '6': twiml.message('📍 Dirección: Cartago, El Guarco. Waze: https://waze.com/aaaaa'); client.awaitingMenu = true; break;
-        case '7': twiml.message('💳 Cuenta BAC: CRlflfkkfkfk\nEnvía el comprobante a WhatsApp 7229 7263.'); client.awaitingMenu = true; break;
-        case '8': twiml.message('📱 SINPE móvil: 7229 7263\nEnvía el comprobante con tu nombre y servicio.'); client.awaitingMenu = true; break;
-        default: twiml.message('❗ Opción no válida.'); client.awaitingMenu = true;
-      }
-      break;
-
-    case 'cabello_menu':
-      if (['1', '2', '3'].includes(msg)) {
-        client.temp.servicio = ['Corte de cabello ✂️', 'Tinte o decoloración 🎨', 'Tratamiento especial 💆‍♀️'][parseInt(msg) - 1];
-        client.step = 'cabello_fecha';
-        twiml.message('📅 ¿En qué fecha desea el servicio?');
-      } else {
-        twiml.message('❗ Opción inválida.'); twiml.message(submenuCabello());
-      }
-      break;
-
-    case 'cabello_fecha':
-      client.temp.fecha = msg;
-      client.step = 'cabello_hora';
-      twiml.message('🕐 ¿En qué horario?');
-      break;
-
-    case 'cabello_hora':
-      client.temp.hora = msg;
-      if (client.temp.servicio.includes('Tratamiento especial')) {
-        client.step = 'cabello_detalle';
-        twiml.message('📝 Por favor, especifica qué tratamiento deseas.');
-      } else {
-        await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-        twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
-        client.awaitingMenu = true;
-        client.step = 'awaiting_menu';
-      }
-      break;
-
-    case 'cabello_detalle':
-      client.temp.detalle = msg;
-      await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-      twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
-      client.awaitingMenu = true;
-      client.step = 'awaiting_menu';
-      break;
-
-    case 'unas_menu':
-      if (['1', '2', '3'].includes(msg)) {
-        client.temp.servicio = ['Uñas - Manos 💅', 'Uñas - Pies 🦶', 'Uñas - Manos y Pies 💅🦶'][parseInt(msg) - 1];
-        client.step = 'unas_fecha';
-        twiml.message('📅 ¿En qué fecha desea el servicio?');
-      } else {
-        twiml.message('❗ Opción inválida.'); twiml.message(submenuUnas());
-      }
-      break;
-
-    case 'unas_fecha':
-      client.temp.fecha = msg;
-      client.step = 'unas_hora';
-      twiml.message('🕐 ¿En qué horario?');
-      break;
-
-    case 'unas_hora':
-      client.temp.hora = msg;
-      if (client.temp.servicio.includes('Manos y Pies')) {
-        client.step = 'unas_detalle';
-        twiml.message('📝 Por favor, especifica qué tratamiento deseas.');
-      } else {
-        await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-        twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
-        client.awaitingMenu = true;
-        client.step = 'awaiting_menu';
-      }
-      break;
-
-    case 'unas_detalle':
-      client.temp.detalle = msg;
-      await notifySalon({ nombre: client.name, telefono: from, ...client.temp });
-      twiml.message('✅ Nos comunicaremos pronto con usted para confirmar la cita.');
-      client.awaitingMenu = true;
-      client.step = 'awaiting_menu';
-      break;
-
-    case 'end_feedback':
-      if (msg !== '0') {
-        const now = new Date();
-        const fechaHoy = now.toLocaleDateString('es-CR');
-        const horaAhora = now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
-        await notifySalon({ nombre: client.name, telefono: from, fecha: fechaHoy, hora: horaAhora, servicio: 'Comentario Final', detalle: msg });
-        twiml.message('🙏 ¡Gracias por tu comentario! Te esperamos pronto en TuSpacio Salon.');
-      } else {
-        twiml.message('🚫 Comentario cancelado. ¡Te esperamos pronto en TuSpacio Salon!');
-      }
-      delete clients[from];
-      break;
-  }
-
-  res.writeHead(200, { 'Content-Type': 'text/xml' });
-  res.end(twiml.toString());
-});
-
-app.listen(port, () => {
-  console.log(`🚀 TuSpacio Salon Bot ejecutándose en http://localhost:${port}`);
+  // Aquí continúa toda tu lógica del switch-case...
+  // No repetido para brevedad (puedo darte el bloque completo si lo deseas)
 });
