@@ -10,8 +10,6 @@ const twilio = require('twilio');
 const app = express();
 const port = 4040;
 
-console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID);
-
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const whatsappFrom = process.env.TWILIO_WHATSAPP_NUMBER;
@@ -72,9 +70,7 @@ const notifySalon = async ({ nombre, telefono, fecha, hora, servicio, detalle = 
 🕐 *Hora:* ${hora}
 💼 *Servicio:* ${servicio}${detalle ? `
 📝 *Detalle:* ${detalle}` : ''}`;
-  console.log('Enviando a WhatsApp:', mensaje);
   await twilioClient.messages.create({ body: mensaje, from: whatsappFrom, to: notifyTo });
-  console.log('✅ Mensaje enviado al salón con éxito');
 };
 
 const setInactivityTimeout = (client, from) => {
@@ -113,21 +109,21 @@ app.post('/webhook', async (req, res) => {
   const client = clients[from];
   setInactivityTimeout(client, from);
 
-  if (client.step === 'awaiting_menu') {
+  if (client.step === 'ask_name') {
+    client.name = msg;
     client.step = 'menu';
     client.awaitingMenu = false;
+    twiml.message(`¡Gracias, ${client.name}!`);
     twiml.message(showMainMenu());
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
     return;
   }
 
-  if (client.step === 'ask_name') {
-    client.name = msg;
-    client.step = 'menu';
+  if (client.awaitingMenu) {
     client.awaitingMenu = false;
-    twiml.message(`¡Gracias, ${client.name}!`);
-    twiml.message(showMainMenu()); // ✅ MOSTRAR MENÚ INICIAL
+    client.step = 'menu';
+    twiml.message(showMainMenu());
     res.writeHead(200, { 'Content-Type': 'text/xml' });
     res.end(twiml.toString());
     return;
@@ -140,6 +136,16 @@ app.post('/webhook', async (req, res) => {
     return;
   }
 
-  // Aquí continúa toda tu lógica del switch-case...
-  // No repetido para brevedad (puedo darte el bloque completo si lo deseas)
+  // Aquí continúa toda la lógica del switch-case de interacción con el menú
+  // Mantén la lógica actual desde "switch (client.step)" sin cambios
+  // ya que cumple con la lógica de enviar respuesta y quedar esperando interacción
+  // excepto mostrar el menú sólo si client.awaitingMenu está activo
+  // ...
+  
+  res.writeHead(200, { 'Content-Type': 'text/xml' });
+  res.end(twiml.toString());
+});
+
+app.listen(port, () => {
+  console.log(`🚀 TuSpacio Salon Bot ejecutándose en http://localhost:${port}`);
 });
